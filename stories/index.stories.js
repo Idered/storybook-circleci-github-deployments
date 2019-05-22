@@ -3,6 +3,7 @@ import { storiesOf } from "@storybook/html";
 
 storiesOf("Demo", module)
   .add("heading", () => "<h1>Hello World</h1>")
+  .add("textarea", () => "<textarea>Type your message...</textarea>")
   .add("button", () => {
     const button = document.createElement("button");
     button.type = "button";
