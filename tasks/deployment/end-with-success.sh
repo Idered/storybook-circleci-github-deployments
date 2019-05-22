@@ -2,9 +2,6 @@
 
 set -eu
 
-build_num=${CIRCLE_BUILD_NUM}
-owner=${CIRCLE_PROJECT_USERNAME}
-repo=${CIRCLE_PROJECT_REPONAME}
 token=${GITHUB_DEPLOYMENTS_TOKEN:?"Missing GITHUB_TOKEN environment variable"}
 
 if ! deployment_id=$(cat deployment); then
@@ -17,7 +14,7 @@ if ! repository=$(curl -s \
                   -H "Authorization: bearer ${token}" \
                   -d "{}" \
                   -H "Content-Type: application/json" \
-                  "https://api.github.com/repos/${owner}/${repo}"); then
+                  "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"); then
   echo "Could not fetch repository data" 1>&2
   exit 1
 fi
@@ -28,14 +25,14 @@ if ! repository_id=$(echo "${repository}" | python -c 'import sys, json; print j
 fi
 
 path_to_repo=$(echo "$CIRCLE_WORKING_DIRECTORY" | sed -e "s:~:$HOME:g")
-url="https://${build_num}-${repository_id}-gh.circle-artifacts.com/0${path_to_repo}/storybook-static/index.html"
+url="https://${CIRCLE_BUILD_NUM}-${repository_id}-gh.circle-artifacts.com/0${path_to_repo}/storybook-static/index.html"
 
 if ! deployment=$(curl -s \
                   -X POST \
                   -H "Authorization: bearer ${token}" \
                   -d "{\"state\": \"success\", \"environment\": \"storybook\", \"environment_url\": \"${url}\", \"target_url\": \"${url}\", \"log_url\": \"${url}\"}" \
                   -H "Content-Type: application/json" \
-                  "https://api.github.com/repos/${owner}/${repo}/deployments/${deployment_id}/statuses" > res); then
+                  "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/deployments/${deployment_id}/statuses" > res); then
   echo "POSTing deployment status failed, exiting (not failing build)" 1>&2
   exit 1
 fi
